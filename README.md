@@ -1,11 +1,11 @@
 # RFC7807ErrorMessages
-A set of classes and extensions to allow for easier creation and use of RFC7807 problem messages from Web API 2.x.
+A set of classes and extensions to allow for easier creation and use of RFC 7807 problem messages from Web API 2.x.
 
 ## What it is
 In the world of REST services, there has been historically no useful standard
 for returning error or problem information to a caller until recently,
-with the proposal of RFC7807.
-https://tools.ietf.org/html/rfc7807
+with the proposal of RFC 7807.
+[Click here to read the text of RFC 7807](https://tools.ietf.org/html/rfc7807)
 
 As this is the closest thing we have to an actual standard for errors
 beyond simple HTTP status codes, you are more likely to create
@@ -22,24 +22,26 @@ The core data transfer object in the library is RFC7807ProblemDetail,
 which holds the various fields from the RFC document and defines
 the data contract to meet the requirements of the RFC.
 
-Example creating a problem detail instance using the exact example
+Example creating a problem detail instance using the example
 from the RFC:
 
-var detail = new RFC7807ProblemDetail
-{
-	Type = new Uri("https://example.com/probs/out-of-credit"),
-	Title = "You do not have enough credit.",
-	Status = 403,
-	Detail = "Your current balance is 30, but that costs 50.",
-	Instance = new Uri("/account/12345/msgs/abc", UriKind.Relative)
-}
+```C#
+    var detail = new RFC7807ProblemDetail
+    {
+       Type = new Uri("https://example.com/probs/out-of-credit"),
+       Title = "You do not have enough credit.",
+       Status = 403,
+       Detail = "Your current balance is 30, but that costs 50.",
+       Instance = new Uri("/account/12345/msgs/abc", UriKind.Relative)
+    }
+```
 
 ## Content Negotiation
 The RFC specifies two specific content media types that should be
 set on the http response depending on the Accept request header:
 
-application/problem+xml   for XML format, and
-application/problem+json  for JSON format.
+* application/problem+xml   for XML format, and
+* application/problem+json  for JSON format.
 
 The RFC7807Media static class has static methods to determine
 the appropriate media type and Web API media type formatter 
@@ -66,21 +68,27 @@ RFC7807Exception class as well, to support this style of coding.
 
 Register the filter either globally in WebApiConfig.cs:
 
-config.Filters.Add(new RFC7807ExceptionFilterAttribute());
-
+```C#
+    config.Filters.Add(new RFC7807ExceptionFilterAttribute());
+```
 ...or locally per-controller or per-action method:
 
-	[RFC7807ExceptionFilter]
-	public void MyActionMethod() ...
+```C#
+    [RFC7807ExceptionFilter]
+    public void MyActionMethod() ...
+```
 
 In your action methods, either throw any exception you want and 
 it will extract the problem detail from the exception:
 
-	throw new InvalidOperationException("You do not have enough credit.");
+```C#
+    throw new InvalidOperationException("You do not have enough credit.");
+```
 
 or even better, throw an RFC7807Exception instance instead, which allows 
 you to explicitly control the problem detail:
 
+```C#
     throw new RFC7807Exception(new RFC7807ProblemDetail
     {
         Type = new Uri("https://example.com/probs/out-of-credit"),
@@ -89,6 +97,7 @@ you to explicitly control the problem detail:
         Detail = "Your current balance is 30, but that costs 50.",
         Instance = new Uri("/account/12345/msgs/abc", UriKind.Relative)
     });
+```
 
 The exception filter will do content negotiation and output the 
 appropriate JSON or XML that meets the RFC standard.
@@ -100,6 +109,7 @@ for more complete control over the response including HTTP headers.
 In order to get the proper content negotiation, you should use the
 HttpRequestMessage extension included in the library:
 
+```C#
     var response = Request.CreateRFC7807ProblemResponse(
 	new RFC7807ProblemDetail
     {
@@ -109,20 +119,24 @@ HttpRequestMessage extension included in the library:
         Detail = "Your current balance is 30, but that costs 50.",
         Instance = new Uri("/account/12345/msgs/abc", UriKind.Relative)
     });
-	// do any other processing of the HttpResponseMessage desired,
-	// then...
-	return response;
+    // do any other processing of the HttpResponseMessage desired,
+    // then...
+    return response;
+```
 
+This is exactly analogous to the existing Request.CreateResponse()
+and Request.CreateErrorResponse() methods included in Web API.
 
 ### If You Believe in Using IHttpActionResult
 Some programmers prefer the flexibility of IHttpActionResult return
-values.  Programmers using this style of coding in Web API prefer
+values.  Programmers using this style of coding in Web API usually prefer
 to avoid throwing Exceptions, and instead return the appropriate
 valid response or error response as an IHttpActionResult.
 
 In order to get the proper content negotiation, you should use the
 HttpRequestMessage extension included in the library:
 
+```C#
     var response = Request.CreateRFC7807ProblemActionResult(
 	new RFC7807ProblemDetail
     {
@@ -132,11 +146,16 @@ HttpRequestMessage extension included in the library:
         Detail = "Your current balance is 30, but that costs 50.",
         Instance = new Uri("/account/12345/msgs/abc", UriKind.Relative)
     });
-	// do any other processing of the IHttpActionResult desired,
-	// then...
-	return response;
+    // do any other processing of the IHttpActionResult desired,
+    // then...
+    return response;
+```
 
-### If You Like Every Kind
+This is exactly analogous to the existing ApiController methods
+like Ok(...), BadRequest(...), etc.
+
+
+### If You Like Every Style
 No problem. Use them all, you will have no issues registering the
 Exception Filter and throwing exceptions in some cases, building
 up HttpResponseMessages in others, and return IHttpActionResults 
