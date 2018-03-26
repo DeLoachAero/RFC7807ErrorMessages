@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2036
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RFC7807ErrorMessages", "RFC7807ErrorMessages\RFC7807ErrorMessages.csproj", "{7FEC31E0-3656-426A-9293-B6A943FB570B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7FEC31E0-3656-426A-9293-B6A943FB570B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FEC31E0-3656-426A-9293-B6A943FB570B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FEC31E0-3656-426A-9293-B6A943FB570B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FEC31E0-3656-426A-9293-B6A943FB570B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {13F8E158-4F53-47D0-AE35-4F4659DF468A}
+	EndGlobalSection
+EndGlobal
