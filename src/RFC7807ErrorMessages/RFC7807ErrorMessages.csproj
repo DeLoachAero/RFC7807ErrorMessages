@@ -54,6 +54,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RFC7807Exception.cs" />
     <Compile Include="RFC7807ExceptionFilter.cs" />
+    <Compile Include="RFC7807GlobalExceptionHandler.cs" />
     <Compile Include="RFC7807Media.cs" />
     <Compile Include="RFC7807ProblemDetail.cs" />
     <Compile Include="RFC7807RequestExtension.cs" />
