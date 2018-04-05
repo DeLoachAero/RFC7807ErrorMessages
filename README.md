@@ -162,6 +162,24 @@ up HttpResponseMessages in others, and return IHttpActionResults
 here and there too.  Going overboard has maintenance consequences,
 though, so you should consider this option carefully ;)
 
+## Global Unhandled Exception Handler
+The above scenarios revolve around the use of intentional exceptions and error 
+results where the code wants explicit control over the error details
+returned.  What about unintentional exceptions that aren't trapped? 
+Returning non-RFC-compliant stock Web Api errors would confuse
+callers expecting all errors to be in the RFC 7807 form.
+
+The library includes a global exception handler that you can 
+register to ensure unhandled exceptions still return results
+in RFC 7807 format.  To register it, in your WebApiConfig.cs:
+
+```C#
+config.Services.Replace(typeof(IExceptionHandler), new RFC7807GlobalExceptionHandler());
+```
+
+Note the use of .Replace instead of .Add; there can only be one 
+global exception handler registered in Web Api.
+
 ## Example Output
 The library, and any of the examples above, produce the same sort of
 output shown in the RFC.  The above examples return this in Web API:
