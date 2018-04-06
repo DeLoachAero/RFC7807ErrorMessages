@@ -1,6 +1,8 @@
 # RFC7807ErrorMessages
 A set of classes and extensions to allow for easier creation and use of RFC 7807 problem messages from Web API 2.x.
 
+NuGet Package: https://www.nuget.org/packages/DeLoachAero.WebApi.RFC7807/
+
 ## What it is
 In the world of REST services, there has been historically no useful standard
 for returning error or problem information to a caller until recently,
