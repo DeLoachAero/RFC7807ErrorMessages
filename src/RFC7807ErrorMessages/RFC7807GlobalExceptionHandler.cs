@@ -16,9 +16,13 @@ namespace DeLoachAero.WebApi
     /// </remarks>
     public class RFC7807GlobalExceptionHandler : ExceptionHandler
     {
+        /// <summary>
+        /// Required method for a web api global exception handler
+        /// </summary>
         public override Task HandleAsync(ExceptionHandlerContext context, CancellationToken cancellationToken)
         {
-            // nothing we can do if the context is not present
+            // The stock web api global handler throws an exception in this case;
+            // duplicating that logic.
             if (context == null)
             {
                 throw new ArgumentNullException("context");

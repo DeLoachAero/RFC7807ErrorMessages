@@ -1,4 +1,6 @@
-﻿using System.Web.Http.Filters;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using System.Web.Http.Filters;
 
 
 namespace DeLoachAero.WebApi
@@ -8,13 +10,18 @@ namespace DeLoachAero.WebApi
     /// </summary>
     public class RFC7807ExceptionFilterAttribute : ExceptionFilterAttribute
     {
-        public override void OnException(HttpActionExecutedContext context)
+        /// <summary>
+        /// Required method for exception filters
+        /// </summary>
+        public override Task OnExceptionAsync(HttpActionExecutedContext context, CancellationToken cancellationToken)
         {
             var ex = context.Exception as RFC7807Exception;
             if (ex == null)
                 ex = new RFC7807Exception(context.Exception, context.Request.RequestUri);
 
             context.Response = context.Request.CreateRFC7807ProblemResponse(ex.ProblemDetail);
+
+            return Task.FromResult(0);
         }
     }
 }

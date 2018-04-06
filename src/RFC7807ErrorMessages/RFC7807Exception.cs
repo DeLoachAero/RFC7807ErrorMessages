@@ -5,9 +5,25 @@ using System.Security.Permissions;
 
 namespace DeLoachAero.WebApi
 {
+    /// <summary>
+    /// Exception class that holds RFC7807 problem detail information
+    /// </summary>
     [Serializable]
     public class RFC7807Exception : Exception
     {
+        /// <summary>
+        /// Set the base URI for any calculated Type URIs; used
+        /// when an RFC7807Exception is created based on a System.Exception
+        /// so no problem detail is present, and the problem type URI must
+        /// be calculated from the source exception type name.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// RFC7807Exception.TypeUriAuthority = "https://example.com/probs/";
+        /// </code>
+        /// </example>
+        public static string TypeUriAuthority = "urn:";
+
         /// <summary>
         /// Holds the problem detail associated with this exception
         /// </summary>
@@ -17,13 +33,14 @@ namespace DeLoachAero.WebApi
         /// Constructor needing only an HttpStatusCode. 
         /// </summary>
         /// <remarks>
-        /// The instance returned meets the requirements, but not the intent, of RFC7807 
-        /// so you should really only use this version when you plan to flesh
-        /// out the <see cref="ProblemDetail"/> in subsequent code.
+        /// The instance returned meets the requirements but not necessarily the intent 
+        /// of RFC7807 so you should really only use this version when you plan to flesh
+        /// out the <see cref="ProblemDetail"/> in subsequent code, unless the
+        /// http status code alone really is completely sufficient to describe the problem.
         /// </remarks>
         public RFC7807Exception(HttpStatusCode statusCode)
         {
-            ProblemDetail = new RFC7807ProblemDetail { Status = (int)statusCode };
+            ProblemDetail = new RFC7807ProblemDetail(statusCode);
         }
 
         /// <summary>
@@ -54,15 +71,15 @@ namespace DeLoachAero.WebApi
         {
             ProblemDetail = new RFC7807ProblemDetail
             {
-                Status = 500,
-                Title = ex.GetType().FullName,
+                Status = (int) HttpStatusCode.InternalServerError,
+                Type = new Uri(TypeUriAuthority + ex.GetType().FullName),
                 Detail = ex.Message,
                 Instance = instanceUri
             };
             
             // 501 errors can be determined directly from the exception type
             if (ex is NotImplementedException)
-                ProblemDetail.Status = 501;
+                ProblemDetail.Status = (int)HttpStatusCode.NotImplemented;
         }
 
         /// <summary>
@@ -80,6 +97,9 @@ namespace DeLoachAero.WebApi
         }
 
         #region ISerializable required methods
+        /// <summary>
+        /// Required method for ISerializble, ensures ProblemDetail is serialized
+        /// </summary>
         [SecurityPermission(SecurityAction.Demand, SerializationFormatter = true)]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
