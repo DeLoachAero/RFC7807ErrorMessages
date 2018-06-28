@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Security.Permissions;
+using System.Web.Http.ModelBinding;
 
 namespace DeLoachAero.WebApi
 {
@@ -11,6 +14,12 @@ namespace DeLoachAero.WebApi
     [Serializable]
     public class RFC7807Exception : Exception
     {
+        /// <summary>
+        /// Generic error message for model state validation errors when no
+        /// other explicit error message is present in the model state dictionary.
+        /// </summary>
+        public const string ModelErrorOccurred = "An error has occurred.";
+
         /// <summary>
         /// Set the base URI for any calculated Type URIs; used
         /// when an RFC7807Exception is created based on a System.Exception
@@ -47,7 +56,7 @@ namespace DeLoachAero.WebApi
         /// Constructor taking an RFC7807ProblemDetail instance.  
         /// </summary>
         /// <remarks>
-        /// This is the best constructor to use, as it gives you explicit control over
+        /// This is the best general constructor to use, as it gives you explicit control over
         /// the problem info directly in RFC7807 form.
         /// </remarks>
         public RFC7807Exception(RFC7807ProblemDetail problem) 
@@ -55,6 +64,48 @@ namespace DeLoachAero.WebApi
             ProblemDetail = problem;
             if (problem.Status <= 0)
                 problem.Status = (int) HttpStatusCode.InternalServerError;
+        }
+
+        /// <summary>
+        /// Constructor for converting model validation errors into an RFC7807Exception
+        /// </summary>
+        /// <param name="modelState">ModelStateDictionary instance from model validation</param>
+        /// <param name="typeUri">optional type URI for the problem detail type</param>
+        /// <param name="instanceUri">optional instance URI for the ProblemDetail</param>
+        /// <example>
+        /// <code>
+        /// if (!ModelState.IsValid)
+        /// {
+        ///     throw new RFC7807Exception(ModelState);
+        /// }
+        /// </code>
+        /// </example>
+        public RFC7807Exception(ModelStateDictionary modelState, Uri typeUri = null, Uri instanceUri = null)
+        {
+            ProblemDetail = new RFC7807ProblemDetail
+            {
+                Status = (int)HttpStatusCode.BadRequest,
+                Type = typeUri ?? new Uri(TypeUriAuthority + typeof(System.ComponentModel.DataAnnotations.ValidationException).FullName),
+                Instance = instanceUri
+            };
+
+            var extensions = new Dictionary<string, dynamic>();
+
+            foreach (var keyValPair in modelState)
+            {
+                var errors = keyValPair.Value.Errors;
+                if (errors != null && errors.Count > 0)
+                {
+                    var errorMessages = errors.Select(error =>
+                    {
+                        return String.IsNullOrEmpty(error.ErrorMessage) ? ModelErrorOccurred : error.ErrorMessage;
+                    }).ToArray();
+
+                    extensions.Add(keyValPair.Key, errorMessages);
+                }
+            }
+
+            ProblemDetail.Extensions = new Dictionary<string, dynamic> { { "modelState", extensions} };
         }
 
         /// <summary>

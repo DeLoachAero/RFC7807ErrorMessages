@@ -17,7 +17,7 @@ namespace DeLoachAero.WebApi
         /// is sufficient to explain the problem.
         /// </summary>
         [IgnoreDataMember]
-        public readonly Uri DefaultType = new Uri("about:blank");
+        public static readonly Uri DefaultType = new Uri("about:blank");
 
         /// <summary>
         /// From RFC7807:
