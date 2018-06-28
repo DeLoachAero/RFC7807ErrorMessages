@@ -1,6 +1,8 @@
 # RFC7807ErrorMessages
 A set of classes and extensions to allow for easier creation and use of RFC 7807 problem messages from Web API 2.x.
 
+NuGet Package: https://www.nuget.org/packages/DeLoachAero.WebApi.RFC7807/
+
 ## What it is
 In the world of REST services, there has been historically no useful standard
 for returning error or problem information to a caller until recently,
@@ -78,6 +80,13 @@ Register the filter either globally in WebApiConfig.cs:
     public void MyActionMethod() ...
 ```
 
+You should also consider setting the RFC7807Exception.TypeUriAuthority
+static property to the value you want any generic exceptions to
+have as a base URI for the Type: 
+```C#
+    RFC7807Exception.TypeUriAuthority = "https://example.com/probs/";
+```
+
 In your action methods, either throw any exception you want and 
 it will extract the problem detail from the exception:
 
@@ -86,7 +95,7 @@ it will extract the problem detail from the exception:
 ```
 
 or even better, throw an RFC7807Exception instance instead, which allows 
-you to explicitly control the problem detail:
+you to explicitly control the problem detail information:
 
 ```C#
     throw new RFC7807Exception(new RFC7807ProblemDetail
@@ -180,6 +189,34 @@ config.Services.Replace(typeof(IExceptionHandler), new RFC7807GlobalExceptionHan
 Note the use of .Replace instead of .Add; there can only be one 
 global exception handler registered in Web Api.
 
+## Problem Detail Extensions
+RFC 7807 supports adding any arbitrary field to the problem description;
+field names cannot be one of the 5 core RFC fields (type, title, status,
+detail, instance), and should be composed of letters, numbers, and
+underscores.
+
+The library supports adding extensions that show up as children
+under a property named "extensions". To use extensions, you must
+create a Dictionary<string, dynamic> of extensions you want to add to the detail:
+
+```C#
+myProblemDetail.Extensions = new Dictionary<string, dynamic> {
+                                { "balance", 30 },
+                                {"accounts", new string[]{"/account/12345", "/account/67890" } }
+                             }
+```
+
+The above example would add this field to the resulting JSON:
+```JSON
+"extensions": {
+    "balance": 30,
+    "accounts": [
+      "/account/12345",
+      "/account/67890"
+    ]
+  }
+```
+
 ## Example Output
 The library, and any of the examples above, produce the same sort of
 output shown in the RFC.  The above examples return this in Web API:
@@ -195,7 +232,20 @@ output shown in the RFC.  The above examples return this in Web API:
 	Date: Mon, 26 Mar 2018 01:39:48 GMT
 	Content-Length: 199
 
-	{"type":"https://example.com/probs/out-of-credit","title":"You do not have enough credit.","status":403,"detail":"Your current balance is 30, but that costs 50.","instance":"/account/12345/msgs/abc"}
+	{
+	    "type": "https://example.com/probs/out-of-credit",
+	    "title": "You do not have enough credit.",
+	    "status": 403,
+	    "detail": "Your current balance is 30, but that costs 50.",
+	    "instance": "/account/12345/msgs/abc",
+	    "extensions": {
+	        "balance": 30,
+	        "accounts": [
+	            "/account/12345",
+	            "/account/67890"
+	        ]
+	    }
+	}
 
 ## License
 MIT License, use as you see fit.
