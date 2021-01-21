@@ -25,12 +25,23 @@ namespace DeLoachAero.WebApi
         /// </summary>
         public static string GetRFC7807ContentTypeForRequest(HttpRequestMessage request)
         {
+            var acceptsAny = request.Headers.Accept.Any(x =>
+                x.MediaType.Equals("*/*") ||
+                x.MediaType.Equals("application/*"));
+
             var isxml = request.Headers.Accept.Any(x =>
                 x.MediaType.Equals("application/xml") ||
                 x.MediaType.Equals("text/xml"));
 
+            if (acceptsAny)
+            {
+                return ProblemJsonMediaType;
+            }
+
             if (isxml)
+            {
                 return ProblemXmlMediaType;
+            }
 
             return ProblemJsonMediaType;
         }
@@ -43,7 +54,7 @@ namespace DeLoachAero.WebApi
             HttpConfiguration configuration, 
             string respMediaType)
         {
-            if (respMediaType.Equals(ProblemXmlMediaType))
+            if (respMediaType.Equals(ProblemXmlMediaType) && configuration.Formatters.XmlFormatter != null)
             {
                 return configuration.Formatters.XmlFormatter;
             }
